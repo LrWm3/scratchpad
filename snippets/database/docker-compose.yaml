@@ -1,0 +1,25 @@
+version: '3'
+services:
+  timescaledb:
+    image: timescale/timescaledb-ha:pg15-oss
+    environment:
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - ./migrations/:/migrations/
+    networks:
+      - timescaledb
+  liquibase:
+    image: liquibase/liquibase
+    command: --hub-mode=off --headless=true --changeLogFile=changelog/root.changelog.xml --url=jdbc:postgresql://timescaledb:5432/postgres --username=postgres --password=password update
+    volumes:
+      - ./migrations/:/liquibase/changelog
+    depends_on:
+      - timescaledb
+    links:
+      - timescaledb
+    networks:
+      - timescaledb
+    restart: on-failure
+
+networks:
+  timescaledb:
